@@ -1,7 +1,5 @@
-import requests
-from dataclasses import dataclass
 from pdf_rag_poc.repository import ChromaDBRepository
-from pdf_rag_poc.data_structure import Document, Chunk, QandContext
+from pdf_rag_poc.data_structure import Document
 from pdf_rag_poc.embedder import SentenceTransformerEmbedder
 
 # Initilaize Models
