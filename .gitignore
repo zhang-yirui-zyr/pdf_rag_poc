@@ -6,3 +6,5 @@ data/*
 
 notebook/test.ipynb
 notebook/test_clean.ipynb
+
+**/__pycache__/*
