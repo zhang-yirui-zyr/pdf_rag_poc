@@ -17,6 +17,6 @@ class Document:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
 @dataclass
-class QandA:
+class QandContext:
     question: str
-    answer: list[str]
+    context: list[str]

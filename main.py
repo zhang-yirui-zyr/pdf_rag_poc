@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     app.state.llm_handler = OllamaLLMHandler()
     app.state.repository = ChromaDBRepository(app.state.embedder)
     yield
-
+    # Clean up
     print("Shutting down...")
     del app.state.chunker
     del app.state.embedder
@@ -51,19 +51,8 @@ app = FastAPI(lifespan=lifespan)
 async def upload_file(
     file: Annotated[UploadFile, File()], 
     tenant_id: Annotated[str, Form()], 
-    tenant_token: Annotated[str, Form()]):
-    """
-    Usage: 
-        curl -X POST 'http://localhost:8000/upload/' \
-             -F 'file=@data/pdfs/tenant_alpha/fictional_company_contract.pdf' \
-             -F 'tenant_id="tenant_alpha"' \
-             -F 'tenant_token="tenant_alpha_token"'
-        curl -X POST 'http://localhost:8000/upload/' \
-             -F 'file=@data/pdfs/tenant_beta/fictional_company_performance_report.pdf' \
-             -F 'tenant_id="tenant_beta"' \
-             -F 'tenant_token="tenant_beta_token"'
-    Note: Currently, only one file can be uploaded, and one file should only be uploaded for once. 
-    """
+    tenant_token: Annotated[str, Form()]
+    ):
     if not authenticate(tenant_id, tenant_token):
         raise HTTPException(status_code=401, detail=f"{tenant_id} with {tenant_token} is Unauthorized")
     else: 
@@ -88,53 +77,24 @@ async def upload_file(
             doc_embeddings = app.state.embedder.embed(doc_chunks)
             
             # Saving
-            tenant_doc = Document(
+            doc = Document(
                 tenant_id=tenant_id,
                 file_name=file_name,
                 text=doc_text,
                 chunks=doc_embeddings
             )
-            app.state.repository.add([tenant_doc])
+            app.state.repository.add([doc])
             return {"file": file_name, "num_chunks": len(doc_chunks), "saved_records": app.state.repository.collection.count()}
 
 @app.post("/question/")
 async def read_item(query: FastAPIQuery):
-    """
-    Usage: 
-        curl -X POST http://localhost:8000/question/ \
-            -H "Content-Type: application/json" \
-            -d '{"question": "What is the weather today?", "tenant_id": "tenant_alpha", "tenant_token": "tenant_alpha_token"}'
-            curl -X POST http://localhost:8000/question/ \
-            -H "Content-Type: application/json" \
-            -d '{"question": "What is the company name?", "tenant_id": "tenant_alpha", "tenant_token": "tenant_alpha_token"}'
-            curl -X POST http://localhost:8000/question/ \
-            -H "Content-Type: application/json" \
-            -d '{"question": "What is the revenue?", "tenant_id": "tenant_alpha", "tenant_token": "tenant_alpha_token"}'
-    Return:
-        {
-            "question":"What is the weather today?",
-            "answer":"I'm not aware of any information about the weather provided in the context. 
-            As there is no mention of weather, I cannot provide an answer to that question based on the given text."
-        }
-        {
-            "question":"What is the company name?",
-            "answer":"The company name is Northstar Dynamics Ltd."
-        }
-        {
-            "question":"What is the revenue?",
-            "answer":"The provided context does not specify the total revenue of Northstar Dynamics Ltd., 
-            but it lists the fees for different roles and services:\n\n- Senior Consultant: €1,250 per day\n- 
-            Consultant: €900 per day\n- Technical Specialist: €1,050 per day\n- Project Manager: €950 per day\n- 
-            Training Workshop: €2,500 per session\n\nThese rates are exclusive of taxes, duties, or governmental charges."
-        }
-    """
     if not authenticate(query.tenant_id, query.tenant_token):
         raise HTTPException(status_code=401, detail=f"{query.tenant_id} with {query.tenant_token} is Unauthorized")
     else:
         # Retrieving
-        q_and_a = app.state.repository.query(query.question, query.tenant_id)
+        q_and_c = app.state.repository.query(query.question, query.tenant_id)
         
         # Responding
-        response = app.state.llm_handler.generate(question=q_and_a.question, context=q_and_a.answer, prompt=PROMPT)
+        response = app.state.llm_handler.generate(question=q_and_c.question, context=q_and_c.context, prompt=PROMPT)
         
         return {"question": query.question, "answer": response}

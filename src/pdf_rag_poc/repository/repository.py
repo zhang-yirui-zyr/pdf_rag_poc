@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 from pdf_rag_poc.embedder import Embedder
-from pdf_rag_poc.data_structure import Document, Chunk, QandA
+from pdf_rag_poc.data_structure import Document, Chunk, QandContext
 import chromadb
 
 class Repository(ABC):
@@ -37,15 +37,15 @@ class ChromaDBRepository(Repository):
                 metadatas=metadatas, # type: ignore
             )
 
-    def query(self, query: str, tenant_id: str, top_n: int = 3) -> QandA:
+    def query(self, query: str, tenant_id: str, top_n: int = 3) -> QandContext:
         query_embedding = self.embedder.embed([query])[0].embedding
         response: chromadb.QueryResult = self.collection.query(
             query_embeddings=[query_embedding],
             n_results=top_n,
             where={"owner": tenant_id},
         )
-        qanda = QandA(question=query, answer=response["documents"][0]) # type: ignore
-        return qanda
+        qandc = QandContext(question=query, context=response["documents"][0]) # type: ignore
+        return qandc
     
     def delete_all(self) -> None:
         self.client.delete_collection(self.collection.name)
