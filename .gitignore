@@ -8,3 +8,6 @@ notebook/test.ipynb
 notebook/test_clean.ipynb
 
 **/__pycache__/*
+
+.vscode/
+.pytest_cache/*

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Query, HTTPException, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 import os
 import tempfile
 from typing import Annotated
@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 from pdf_rag_poc import *
 from pydantic import BaseModel
 from joblib.externals.loky import get_reusable_executor
-import json
 
 class FastAPIQuery(BaseModel):
     question: str
