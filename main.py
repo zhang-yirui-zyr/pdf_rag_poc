@@ -41,21 +41,44 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 @app.post("/upload/")
-async def upload_file(file: Annotated[UploadFile, File()], tenant_id: Annotated[str, Form()], tenant_token: Annotated[str, Form()]):
+async def upload_file(file: Annotated[UploadFile, File()], tenant_id: Annotated[str, Form()], tenant_token: Annotated[str, Form()]) -> None:
     """
     Usage: 
         curl -X POST 'http://localhost:8000/upload/' \
              -F 'file=@data/pdfs/tenant_alpha/fictional_company_contract.pdf' \
              -F 'tenant_id="tenant_alpha"' \
              -F 'tenant_token="tenant_alpha_token"'
+        curl -X POST 'http://localhost:8000/upload/' \
+             -F 'file=@data/pdfs/tenant_beta/fictional_company_performance_report.pdf' \
+             -F 'tenant_id="tenant_beta"' \
+             -F 'tenant_token="tenant_beta_token"'
+    Note: Currently, only one file can be uploaded, and one file should only be uploaded for once. 
     """
     if not authenticate(tenant_id, tenant_token):
         raise HTTPException(status_code=401, detail=f"{tenant_id} with {tenant_token} is Unauthorized")
     else: 
         with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = file.filename
-        
-        return {"file": file_name, "tenant_id": tenant_id, "tenant_token": tenant_token}
+            # Pre-Processing
+            file_name = file.filename or "unknown.pdf"
+            pdf_path = os.path.join(temp_dir, file_name)
+
+            with open(pdf_path, "wb") as f:
+                f.write(await file.read())
+            
+            dump_images(pdf_path, os.path.join(temp_dir, "imgs"))
+            imgs = load_images(os.path.join(temp_dir, "imgs", file_name.split(".")[0]))
+
+            # Parsing & Chunking & Embedding
+            doc_text = parse_pdf_images(imgs)
+            doc_chunks = app.state.chunker.chunk(doc_text)
+            doc_embeddings = app.state.embedder.embed(doc_chunks)
+            tenant_doc = Document(
+                tenant_id=tenant_id,
+                file_name=file_name,
+                text=doc_text,
+                chunks=doc_embeddings
+            )
+            app.state.repository.add([tenant_doc])
 
 
 @app.post("/question/")
