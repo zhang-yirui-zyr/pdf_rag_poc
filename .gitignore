@@ -11,3 +11,5 @@ notebook/test_clean.ipynb
 
 .vscode/
 .pytest_cache/*
+
+pixi.lock
