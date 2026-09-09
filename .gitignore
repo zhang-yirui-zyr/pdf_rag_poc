@@ -2,7 +2,7 @@
 .pixi/*
 !.pixi/config.toml
 
-data/*
+data/imgs/*
 
 notebook/test.ipynb
 notebook/test_clean.ipynb
