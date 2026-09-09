@@ -5,8 +5,10 @@ A proof of concept, multi-tenant RAG service in python where users can upload PD
 ## Features:
 
 - OCR for parsing documents, so it works with scanned PDFs.
-- Multi-tenant storage & Secure retrieval: The service implements strict multi-tennat separation via metadata filtering. No tenant can access documents fragments from other tenants.
-- LLMs of your choice to avoid exposing data: The service implements a llm interface so the user can pick their preferred llm model, and can be used with llm model providers like ollama
+- Multi-tenant storage & retrieval: The service implements strict multi-tennat separation via metadata filtering. No tenant can access documents and document fragments from other tenants.
+- LLMs and providers of user's choice: The service implements a llm interface so the user can pick their preferred llm model or provider
+
+
 
 ## Project Architecture Overview
 
@@ -20,19 +22,38 @@ A proof of concept, multi-tenant RAG service in python where users can upload PD
 
 ### Justifications of technology stack selection
 
-- OCR engine: Tesseract OCR (over PaddleOCR, easyOCR etc...)
-  - Due to time limitation, I pick a tool that I am familiar with.
-  - Unlike PaddleOCR, Tesseract does only OCR. In the spirit of encapsulation, it can be easily swapped for other OCR tools.
-- VectorDB: ChromaDB (over Qdrant, LanceDB etc...)
-  - open-source, recommended in blogs for quick picking up and usage
+Guiding principles for design choices:   
+
+- Convenience: open source packages, local model, in-memory storage, no data send externally  
+- Proof of concept: make something work as efficient as possible; No premature optimization; stays with a familiar package if it gets the job done; standard solutions first
+- Programming against abstraction: Making the structure as robust as possible in limited time; allowing future improvements/swapping to other model or packages without massive rewriting.
+
+Specifically: 
+
+- REST API framework: FastAPI
+  - Easy to use and learn; fast to run;
+  - Typing support
+- OCR engine: Tesseract OCR
+  - Easy to use; It gets the job done; 
+  - Light weight; standalone; EasyOCR for example relies on PyTorch and TorchVision and therefore not chosen
+  - Can easily swap for other OCR programs
 - Chunking Strategy: Simple chunking
-  - due to time limitation, picked for fixed number of words chunking with overlap
-  - would be great to implement semantic chunking which perserves the semantic structures
-- Embedding model: all-miniLM-L6-v2
-- LLM model: ollama/llama3.2
-  - choose litellm for interface, since it is compatible with most available llms or llm providers, in the spirit of later swapping
-  - ollama because it is open source, and it provides open models
-  - llama3.2: I have it locally
+  - Proof of concept, simplest method: fixed number of words chunking with overlap
+  - Semantic and structure aware chunking is not trivial, and requires better research
+  - Wrote abstract class Chunker for swapping for better chunking methods in the future
+- Embedder: all-miniLM-L6-v2
+  - Previous experience with the mdoel; It gets the job done;
+  - Lightweight (not a lot of parameters with OKish perforamnces); Runs locally; Popular model; 
+  - Wrote abstract class Embedder for swapping for better embedder models
+- Vector DB: ChromaDB
+  - open-source, fast to learn and use
+  - in-memory storage for convenience; good enough for small tasks
+  - Wrote repository class for swapping for other VectorDB and isolate the rest of the code from VectorDB specifics
+- LLM Interface: LiteLLM with ollama/llama3.2 backend
+  - LiteLLM is compatible with most available LLMs and LLM providers. Easy to swap for other LLM provider or model
+  - Ollama/llama3.2: open source provider, open source model, can run locally
+
+
 
 ## Installation & Usage
 
@@ -42,11 +63,15 @@ A proof of concept, multi-tenant RAG service in python where users can upload PD
 conda env create --name venv --file=environment.yaml
 ```
 
+
+
 ### Run FastAPI in the background
 
 ```bash
 fastapi dev
 ```
+
+
 
 ### Upload Service
 
