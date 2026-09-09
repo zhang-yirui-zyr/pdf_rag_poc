@@ -33,7 +33,10 @@ async def lifespan(app: FastAPI):
     # Initilize Models
     print("Starting up...")
     app.state.chunker = SimpleChunker()
-    app.state.embedder = SentenceTransformerEmbedder()
+    app.state.embedder = SentenceTransformerEmbedder(model_name="all-MiniLM-L6-v2")
+    # app.state.embedder = SentenceTransformerEmbedder(# For better embedding performance, try this embedder instead
+    #     model_name="codefuse-ai/F2LLM-v2-0.6B", 
+    #     model_kwargs={"torch_dtype": "bfloat16"})
     app.state.llm_handler = OllamaLLMHandler()
     app.state.repository = ChromaDBRepository(app.state.embedder)
     yield

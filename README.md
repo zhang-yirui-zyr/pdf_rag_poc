@@ -43,9 +43,12 @@ Specifically:
   - Proof of concept, simplest method: fixed number of words chunking with overlap
   - Semantic and structure aware chunking is not trivial, and requires better research
   - Wrote abstract class Chunker for swapping for better chunking methods in the future
-- Embedder: all-miniLM-L6-v2
-  - Previous experience with the mdoel; It gets the job done;
-  - Lightweight (not a lot of parameters with OKish perforamnces); Runs locally; Popular model; 
+- Embedder: all-miniLM-L6-v2; for better performances: codefuse-ai/F2LLM-v2-0.6B
+  - all-miniLM-L6-v2: 
+    - Lightweight (not a lot of parameters with OKish perforamnces); Runs locally; Popular model; It gets the job done
+  - codefuse-ai/F2LLM-v2-0.6B:
+    - Better performances for long-context retrieval on leaderboard;
+    - Heavyweight (a lot of parameters); Runs locally; Popular model;
   - Wrote abstract class Embedder for swapping for better embedder models
 - Vector DB: ChromaDB
   - open-source, fast to learn and use
@@ -58,8 +61,6 @@ Specifically:
 
 
 ## Installation & Usage
-
-
 
 ### Set up environment
 
@@ -157,7 +158,9 @@ Example output:
 }
 ```
 
-### Remark: 
+
+
+### Remark:
 
 The service implements a naive security check. Currently, it only allows two user with respective tokens: 
 
