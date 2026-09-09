@@ -39,7 +39,7 @@ A proof of concept, multi-tenant RAG service in python where users can upload PD
 ### Set up environment
 
 ```bash
-conda env create --name venv --file=environment.yml
+conda env create --name venv --file=environment.yaml
 ```
 
 ### Run FastAPI in the background
@@ -56,7 +56,7 @@ If using CLI
 
 ```bash
 curl -X POST 'http://localhost:8000/upload/' \
--F 'file=@path/to/file.pdf'\
+-F 'file=@path/to/file.pdf' \
 -F 'tenant_id="user_id"' \
 -F 'tenant_token="user_token"'
 ```
