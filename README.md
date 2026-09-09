@@ -12,6 +12,8 @@ A proof of concept, multi-tenant RAG service in python where users can upload PD
 
 ## Project Architecture Overview
 
+
+
 ### graph of architecture
 
 ![System Architecture Diagram](assets/pdf_rag_poc-Page-1.drawio.png)
@@ -56,6 +58,8 @@ Specifically:
 
 
 ## Installation & Usage
+
+
 
 ### Set up environment
 
@@ -153,7 +157,14 @@ Example output:
 }
 ```
 
+### Remark: 
 
+The service implements a naive security check. Currently, it only allows two user with respective tokens: 
+
+- "tenant_alpha" with "tenant_alpha_token"
+- "tenant_beta" with "tenant_beta_token"
+
+See app_demo.ipynb for examples. 
 
 ## Project Overview
 
