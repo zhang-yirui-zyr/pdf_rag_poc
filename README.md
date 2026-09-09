@@ -65,7 +65,7 @@ conda env create --name venv --file=environment.yaml
 
 
 
-### Run FastAPI in the background
+### Run FastAPI
 
 ```bash
 fastapi dev
